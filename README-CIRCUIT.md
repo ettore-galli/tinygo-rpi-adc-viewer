@@ -1,6 +1,6 @@
 # ADC VIEWER
 
-## project description
+## Project description
 
 This is a viewer on display of the values sampled by the ADC; in practice the "poor man's oscilloscope"
 
