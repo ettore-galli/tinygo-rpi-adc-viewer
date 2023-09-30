@@ -9,20 +9,14 @@ import (
 	"tinygo.org/x/drivers/ssd1306"
 )
 
-func LedLoop(led machine.Pin, delayMs float64) {
-	for {
-		led.Low()
-		time.Sleep(time.Millisecond * time.Duration(delayMs))
-		led.High()
-		time.Sleep(time.Millisecond * time.Duration(delayMs))
-	}
-}
+func AdcLoop(sensor machine.ADC, samplingDelayMs float64, valueCallback func(*signalTrace, uint16)) {
+	trace := signalTrace{curX: 0}
 
-func AdcLoop(sensor machine.ADC, samplingDelayMs float64, valueCallback func(uint16)) {
 	var val uint16
+
 	for {
 		val = sensor.Get()
-		valueCallback(val)
+		valueCallback(&trace, val)
 		time.Sleep(time.Millisecond * time.Duration(samplingDelayMs))
 	}
 }
@@ -120,26 +114,17 @@ func main() {
 	var mainWg sync.WaitGroup
 	mainWg.Add(1)
 
-	var samplingDelayMs float64 = 1
-
-	led := machine.Pin(0)
-	led.Configure(machine.PinConfig{Mode: machine.PinOutput})
+	var samplingDelayMs float64 = 0.1
 
 	var sensor machine.ADC = initializeADCSensor()
 
 	var display ssd1306.Device = initializeSsd1306Display()
 
-	trace := signalTrace{curX: 0}
-
-	valueCallback := func(value uint16) {
-		// writeValueOnDisplay(display, value)
-		writeTraceOnDisplay(display, &trace, value)
+	valueCallback := func(trace *signalTrace, value uint16) {
+		writeTraceOnDisplay(display, trace, value)
 	}
 
 	go AdcLoop(sensor, samplingDelayMs, valueCallback)
-
-	// var delayMs float64 = 300
-	// go LedLoop(led, delayMs)
 
 	go IAmAliveLoop()
 
