@@ -29,3 +29,10 @@ Connect to device and read serial
 ```bash
 tinygo monitor
 ```
+
+## Reference
+
+<https://github.com/va1da5/tinygo-pico-ssd1306/blob/main/README.md>
+<https://github.com/tinygo-org/drivers>
+<https://github.com/tinygo-org/tinydraw>
+<https://github.com/Nondzu/ssd1306_font>

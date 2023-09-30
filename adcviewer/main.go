@@ -1,6 +1,7 @@
 package main
 
 import (
+	"image/color"
 	"machine"
 	"sync"
 	"time"
@@ -93,6 +94,27 @@ func initializeSsd1306Display() ssd1306.Device {
 	return display
 }
 
+type signalTrace struct {
+	curX   int
+	values [128]uint16
+}
+
+func writeTraceOnDisplay(display ssd1306.Device, trace *signalTrace, value uint16) {
+	black := color.RGBA{0, 0, 0, 255}
+	white := color.RGBA{255, 255, 255, 255}
+
+	yValue := byte(value >> 10) // 0-65535 --> 0-64
+
+	display.SetPixel(int16(trace.curX), int16(trace.values[trace.curX]), black)
+	display.SetPixel(int16(trace.curX), int16(yValue), white)
+
+	trace.values[trace.curX] = uint16(yValue)
+
+	trace.curX = (trace.curX + 1) % len(trace.values)
+
+	display.Display()
+}
+
 func main() {
 
 	var mainWg sync.WaitGroup
@@ -107,8 +129,11 @@ func main() {
 
 	var display ssd1306.Device = initializeSsd1306Display()
 
+	trace := signalTrace{curX: 0}
+
 	valueCallback := func(value uint16) {
-		writeValueOnDisplay(display, value)
+		// writeValueOnDisplay(display, value)
+		writeTraceOnDisplay(display, &trace, value)
 	}
 
 	go AdcLoop(sensor, samplingDelayMs, valueCallback)
