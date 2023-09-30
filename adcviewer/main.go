@@ -9,7 +9,11 @@ import (
 	"tinygo.org/x/drivers/ssd1306"
 )
 
-func AdcLoop(sensor machine.ADC, samplingDelayMs float64, valueCallback func(*signalTrace, uint16)) {
+func calculateResidualSleepTimeMicroseconds(samplingDelayMicros float64, knownSamplingTimeMicros float64) time.Duration {
+	return time.Duration(time.Duration(samplingDelayMicros - knownSamplingTimeMicros).Microseconds())
+}
+
+func AdcLoop(sensor machine.ADC, samplingDelayMicros float64, valueCallback func(*signalTrace, uint16)) {
 	trace := signalTrace{curX: 0}
 
 	var val uint16
@@ -17,7 +21,7 @@ func AdcLoop(sensor machine.ADC, samplingDelayMs float64, valueCallback func(*si
 	for {
 		val = sensor.Get()
 		valueCallback(&trace, val)
-		time.Sleep(time.Millisecond * time.Duration(samplingDelayMs))
+		time.Sleep(time.Microsecond * calculateResidualSleepTimeMicroseconds(samplingDelayMicros, 0.2))
 	}
 }
 
@@ -106,7 +110,10 @@ func writeTraceOnDisplay(display ssd1306.Device, trace *signalTrace, value uint1
 
 	trace.curX = (trace.curX + 1) % len(trace.values)
 
-	display.Display()
+	if trace.curX == 0 {
+		display.Display()
+	}
+
 }
 
 func main() {
@@ -114,7 +121,7 @@ func main() {
 	var mainWg sync.WaitGroup
 	mainWg.Add(1)
 
-	var samplingDelayMs float64 = 0.1
+	var samplingDelayMicros float64 = 1000
 
 	var sensor machine.ADC = initializeADCSensor()
 
@@ -124,7 +131,7 @@ func main() {
 		writeTraceOnDisplay(display, trace, value)
 	}
 
-	go AdcLoop(sensor, samplingDelayMs, valueCallback)
+	go AdcLoop(sensor, samplingDelayMicros, valueCallback)
 
 	go IAmAliveLoop()
 
