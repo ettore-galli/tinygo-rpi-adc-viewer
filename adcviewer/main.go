@@ -13,14 +13,14 @@ func calculateResidualSleepTimeMicroseconds(samplingDelayMicros float64, knownSa
 	return time.Duration(time.Duration(samplingDelayMicros - knownSamplingTimeMicros).Microseconds())
 }
 
-func AdcLoop(sensor machine.ADC, samplingDelayMicros float64, valueCallback func(*signalTrace, uint16)) {
+func AdcLoop(sensor machine.ADC, samplingDelayMicros float64, displayValueCallback func(*signalTrace, uint16)) {
 	trace := signalTrace{curX: 0}
 
 	var val uint16
 
 	for {
 		val = sensor.Get()
-		valueCallback(&trace, val)
+		displayValueCallback(&trace, val)
 		time.Sleep(time.Microsecond * calculateResidualSleepTimeMicroseconds(samplingDelayMicros, 0.2))
 	}
 }
@@ -54,7 +54,7 @@ func createImageBufferFromValue(value uint16) []byte {
 	return buffer
 }
 
-func writeBufferOnDisplay(display ssd1306.Device, imgBuffer []byte) {
+func sendBufferToDisplay(display ssd1306.Device, imgBuffer []byte) {
 
 	err := display.SetBuffer(imgBuffer)
 	if err != nil {
@@ -64,9 +64,9 @@ func writeBufferOnDisplay(display ssd1306.Device, imgBuffer []byte) {
 	display.Display()
 }
 
-func writeValueOnDisplay(display ssd1306.Device, value uint16) {
+func writeValueBarOnDisplay(display ssd1306.Device, value uint16) {
 	imgBuffer := createImageBufferFromValue(value)
-	writeBufferOnDisplay(display, imgBuffer)
+	sendBufferToDisplay(display, imgBuffer)
 }
 
 func initializeADCSensor() machine.ADC {
@@ -127,11 +127,11 @@ func main() {
 
 	var display ssd1306.Device = initializeSsd1306Display()
 
-	valueCallback := func(trace *signalTrace, value uint16) {
+	displayValueCallback := func(trace *signalTrace, value uint16) {
 		writeTraceOnDisplay(display, trace, value)
 	}
 
-	go AdcLoop(sensor, samplingDelayMicros, valueCallback)
+	go AdcLoop(sensor, samplingDelayMicros, displayValueCallback)
 
 	go IAmAliveLoop()
 
