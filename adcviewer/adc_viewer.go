@@ -64,7 +64,7 @@ func initializeSsd1306Display() ssd1306.Device {
 	return display
 }
 
-func scaleSensorValueToTraceDisplayRange(value uint16) byte {
+func ScaleSensorValueToTraceDisplayRange(value uint16) byte {
 	return byte(value >> 10) // 0-65535 --> 0-64
 }
 
@@ -72,7 +72,7 @@ func writeTraceOnDisplay(display ssd1306.Device, trace *signalTrace, value uint1
 	black := color.RGBA{0, 0, 0, 255}
 	white := color.RGBA{255, 255, 255, 255}
 
-	yValue := scaleSensorValueToTraceDisplayRange(value)
+	yValue := ScaleSensorValueToTraceDisplayRange(value)
 
 	display.SetPixel(int16(trace.curX), int16(trace.values[trace.curX]), black)
 	display.SetPixel(int16(trace.curX), int16(yValue), white)
