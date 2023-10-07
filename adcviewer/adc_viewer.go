@@ -3,11 +3,8 @@ package main
 import (
 	"adcviewer/device"
 	"image/color"
-	"machine"
 	"sync"
 	"time"
-
-	"tinygo.org/x/drivers/ssd1306"
 )
 
 type AdcViewerSettings struct {
@@ -21,6 +18,11 @@ type signalTrace struct {
 
 type ADCSensor interface {
 	Get() uint16
+}
+
+type SSD1306Display interface {
+	SetPixel(x int16, y int16, c color.RGBA)
+	Display() error
 }
 
 func calculateResidualSleepTimeMicroseconds(samplingDelayMicros float64, knownSamplingTimeMicros float64) time.Duration {
@@ -45,34 +47,11 @@ func IAmAliveLoop() {
 	}
 }
 
-// func initializeADCSensor(pin machine.Pin) machine.ADC {
-// 	var sensor = machine.ADC{
-// 		Pin: machine.ADC0,
-// 	}
-
-// 	machine.InitADC()
-// 	adcCfg := machine.ADCConfig{}
-// 	sensor.Configure(adcCfg)
-
-// 	return sensor
-// }
-
-func initializeSsd1306Display() ssd1306.Device {
-	machine.I2C1.Configure(machine.I2CConfig{Frequency: 400 * machine.KHz})
-	display := ssd1306.NewI2C(machine.I2C1)
-	display.Configure(ssd1306.Config{Width: 128, Height: 64, Address: ssd1306.Address_128_32, VccState: ssd1306.SWITCHCAPVCC})
-
-	display.ClearBuffer()
-	display.ClearDisplay()
-
-	return display
-}
-
 func ScaleSensorValueToTraceDisplayRange(value uint16) byte {
 	return byte(value >> 10) // 0-65535 --> 0-64
 }
 
-func writeTraceOnDisplay(display ssd1306.Device, trace *signalTrace, value uint16) {
+func writeTraceOnDisplay(display SSD1306Display, trace *signalTrace, value uint16) {
 	black := color.RGBA{0, 0, 0, 255}
 	white := color.RGBA{255, 255, 255, 255}
 
@@ -98,7 +77,8 @@ func RunSignalTracer(settings AdcViewerSettings) {
 
 	var sensor ADCSensor = device.InitializeADCSensor()
 
-	var display ssd1306.Device = initializeSsd1306Display()
+	var display SSD1306Display
+	display = device.InitializeSsd1306Display()
 
 	trace := signalTrace{curX: 0}
 	displayValueCallback := func(value uint16) {

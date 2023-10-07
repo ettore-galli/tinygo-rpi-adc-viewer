@@ -1,13 +1,9 @@
 
-clean:
-	@rm -rf build
+build:
+	tinygo build -target=pico .	
 
 flash:
 	tinygo flash -target=pico .	
 
-smoke-test:
-	@mkdir -p build
-	tinygo build -size short -o ./build/test.hex -target=pico .
-
-test: clean smoke-test
+test:  
 	go test
