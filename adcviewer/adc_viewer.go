@@ -1,6 +1,7 @@
 package main
 
 import (
+	"adcviewer/device"
 	"image/color"
 	"machine"
 	"sync"
@@ -11,7 +12,6 @@ import (
 
 type AdcViewerSettings struct {
 	samplingDelayMicros float64
-	pin                 machine.Pin
 }
 
 type signalTrace struct {
@@ -19,11 +19,15 @@ type signalTrace struct {
 	values [128]uint16
 }
 
+type ADCSensor interface {
+	Get() uint16
+}
+
 func calculateResidualSleepTimeMicroseconds(samplingDelayMicros float64, knownSamplingTimeMicros float64) time.Duration {
 	return time.Duration(time.Duration(samplingDelayMicros - knownSamplingTimeMicros).Microseconds())
 }
 
-func AdcLoop(sensor machine.ADC, samplingDelayMicros float64, displayValueCallback func(uint16)) {
+func AdcLoop(sensor ADCSensor, samplingDelayMicros float64, displayValueCallback func(uint16)) {
 
 	var sensorValue uint16
 
@@ -41,17 +45,17 @@ func IAmAliveLoop() {
 	}
 }
 
-func initializeADCSensor(pin machine.Pin) machine.ADC {
-	var sensor = machine.ADC{
-		Pin: machine.ADC0,
-	}
+// func initializeADCSensor(pin machine.Pin) machine.ADC {
+// 	var sensor = machine.ADC{
+// 		Pin: machine.ADC0,
+// 	}
 
-	machine.InitADC()
-	adcCfg := machine.ADCConfig{}
-	sensor.Configure(adcCfg)
+// 	machine.InitADC()
+// 	adcCfg := machine.ADCConfig{}
+// 	sensor.Configure(adcCfg)
 
-	return sensor
-}
+// 	return sensor
+// }
 
 func initializeSsd1306Display() ssd1306.Device {
 	machine.I2C1.Configure(machine.I2CConfig{Frequency: 400 * machine.KHz})
@@ -92,7 +96,7 @@ func RunSignalTracer(settings AdcViewerSettings) {
 
 	mainWg.Add(1)
 
-	var sensor machine.ADC = initializeADCSensor(settings.pin)
+	var sensor ADCSensor = device.InitializeADCSensor()
 
 	var display ssd1306.Device = initializeSsd1306Display()
 
