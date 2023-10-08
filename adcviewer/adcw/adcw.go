@@ -1,4 +1,4 @@
-package main
+package adcw
 
 import (
 	"adcviewer/device"
@@ -8,7 +8,7 @@ import (
 )
 
 type AdcViewerSettings struct {
-	samplingDelayMicros float64
+	SamplingDelayMicros float64
 }
 
 type signalTrace struct {
@@ -85,7 +85,7 @@ func RunSignalTracer(settings AdcViewerSettings) {
 		writeTraceOnDisplay(display, &trace, value)
 	}
 
-	go AdcLoop(sensor, settings.samplingDelayMicros, displayValueCallback)
+	go AdcLoop(sensor, settings.SamplingDelayMicros, displayValueCallback)
 
 	go IAmAliveLoop()
 

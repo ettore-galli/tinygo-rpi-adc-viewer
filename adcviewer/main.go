@@ -1,9 +1,11 @@
 package main
 
+import "adcviewer/adcw"
+
 func main() {
-	settings := AdcViewerSettings{
-		samplingDelayMicros: 1000,
+	settings := adcw.AdcViewerSettings{
+		SamplingDelayMicros: 1000,
 	}
-	RunSignalTracer(settings)
+	adcw.RunSignalTracer(settings)
 
 }
