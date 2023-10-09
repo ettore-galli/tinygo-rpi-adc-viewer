@@ -8,4 +8,4 @@ flash:
 	tinygo flash -target=pico .	
 
 test:  
-	tinygo test -v adc_viewer_test.go
+	tinygo test -target=pico ./adcw/adcw_test.go

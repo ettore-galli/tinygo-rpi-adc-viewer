@@ -4,7 +4,7 @@ import (
 	"machine"
 )
 
-func InitializeADCSensor() machine.ADC {
+func InitializeADCSensor() *machine.ADC {
 	var sensor = machine.ADC{
 		Pin: machine.ADC0,
 	}
@@ -13,5 +13,5 @@ func InitializeADCSensor() machine.ADC {
 	adcCfg := machine.ADCConfig{}
 	sensor.Configure(adcCfg)
 
-	return sensor
+	return &sensor
 }
