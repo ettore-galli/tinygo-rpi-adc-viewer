@@ -1,7 +1,6 @@
 package adcw
 
 import (
-	"adcviewer/device"
 	"image/color"
 	"sync"
 	"time"
@@ -70,17 +69,13 @@ func writeTraceOnDisplay(display SSD1306Display, trace *signalTrace, value uint1
 
 }
 
-func RunSignalTracer(settings AdcViewerSettings) {
+func RunSignalTracer(settings AdcViewerSettings, sensor ADCSensor, display SSD1306Display) {
 	var mainWg sync.WaitGroup
 
 	mainWg.Add(1)
 
-	var sensor ADCSensor = device.InitializeADCSensor()
-
-	var display SSD1306Display
-	display = device.InitializeSsd1306Display()
-
 	trace := signalTrace{curX: 0}
+
 	displayValueCallback := func(value uint16) {
 		writeTraceOnDisplay(display, &trace, value)
 	}
