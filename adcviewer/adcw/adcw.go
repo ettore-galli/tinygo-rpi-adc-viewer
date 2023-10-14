@@ -6,7 +6,7 @@ import (
 )
 
 type AdcViewerSettings struct {
-	SamplingDelayMicros float64
+	SamplingDelayMicros int64
 }
 
 type signalTrace struct {
@@ -31,18 +31,18 @@ type RunEnvironment struct {
 }
 
 type Clock interface {
-	SleepMicroseconds(microseconds float64)
-	SleepMilliseconds(milliseconds float64)
+	SleepMicroseconds(microseconds int64)
+	SleepMilliseconds(milliseconds int64)
 }
 
-func AdcLoop(clock Clock, sensor ADCSensor, samplingDelayMicros float64, displayValueCallback func(uint16)) {
+func AdcLoop(clock Clock, sensor ADCSensor, samplingDelayMicros int64, displayValueCallback func(uint16)) {
 
 	var sensorValue uint16
 
 	for {
 		sensorValue = sensor.Get()
 		displayValueCallback(sensorValue)
-		clock.SleepMicroseconds(samplingDelayMicros - 0.2)
+		clock.SleepMicroseconds(samplingDelayMicros - 2)
 	}
 }
 

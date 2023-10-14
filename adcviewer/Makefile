@@ -9,3 +9,4 @@ flash:
 
 test:  
 	go test adcw/*
+	go test clock/*

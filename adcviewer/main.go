@@ -9,7 +9,7 @@ import (
 func main() {
 
 	settings := adcw.AdcViewerSettings{
-		SamplingDelayMicros: 1000,
+		SamplingDelayMicros: 100,
 	}
 
 	var sensor adcw.ADCSensor
