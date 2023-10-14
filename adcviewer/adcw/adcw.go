@@ -3,7 +3,6 @@ package adcw
 import (
 	"image/color"
 	"sync"
-	"time"
 )
 
 type AdcViewerSettings struct {
@@ -28,27 +27,30 @@ type RunEnvironment struct {
 	Settings AdcViewerSettings
 	Sensor   ADCSensor
 	Display  SSD1306Display
+	Clock    Clock
 }
 
-func calculateResidualSleepTimeMicroseconds(samplingDelayMicros float64, knownSamplingTimeMicros float64) time.Duration {
-	return time.Duration(time.Duration(samplingDelayMicros - knownSamplingTimeMicros).Microseconds())
+type Clock interface {
+	SleepMicroseconds(microseconds float64)
+	SleepMilliseconds(milliseconds float64)
 }
 
-func AdcLoop(sensor ADCSensor, samplingDelayMicros float64, displayValueCallback func(uint16)) {
+func AdcLoop(clock Clock, sensor ADCSensor, samplingDelayMicros float64, displayValueCallback func(uint16)) {
 
 	var sensorValue uint16
 
 	for {
 		sensorValue = sensor.Get()
 		displayValueCallback(sensorValue)
-		time.Sleep(time.Microsecond * calculateResidualSleepTimeMicroseconds(samplingDelayMicros, 0.2))
+		clock.SleepMicroseconds(samplingDelayMicros - 0.2)
 	}
 }
 
-func IAmAliveLoop() {
+func IAmAliveLoop(clock Clock) {
 	for {
 		println("I am alive...")
-		time.Sleep(time.Millisecond * 1000)
+		clock.SleepMilliseconds(1000)
+
 	}
 }
 
@@ -86,9 +88,9 @@ func RunSignalTracer(runEnvironment RunEnvironment) {
 		writeTraceOnDisplay(runEnvironment.Display, &trace, value)
 	}
 
-	go AdcLoop(runEnvironment.Sensor, runEnvironment.Settings.SamplingDelayMicros, displayValueCallback)
+	go AdcLoop(runEnvironment.Clock, runEnvironment.Sensor, runEnvironment.Settings.SamplingDelayMicros, displayValueCallback)
 
-	go IAmAliveLoop()
+	go IAmAliveLoop(runEnvironment.Clock)
 
 	mainWg.Wait()
 }
