@@ -17,6 +17,6 @@ func main() {
 	var display adcw.SSD1306Display
 	display = device.InitializeSsd1306Display()
 
-	adcw.RunSignalTracer(settings, sensor, display)
+	adcw.RunSignalTracer(adcw.RunEnvironment{Settings: settings, Sensor: sensor, Display: display})
 
 }

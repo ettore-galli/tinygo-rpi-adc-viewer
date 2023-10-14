@@ -24,6 +24,12 @@ type SSD1306Display interface {
 	Display() error
 }
 
+type RunEnvironment struct {
+	Settings AdcViewerSettings
+	Sensor   ADCSensor
+	Display  SSD1306Display
+}
+
 func calculateResidualSleepTimeMicroseconds(samplingDelayMicros float64, knownSamplingTimeMicros float64) time.Duration {
 	return time.Duration(time.Duration(samplingDelayMicros - knownSamplingTimeMicros).Microseconds())
 }
@@ -69,7 +75,7 @@ func writeTraceOnDisplay(display SSD1306Display, trace *signalTrace, value uint1
 
 }
 
-func RunSignalTracer(settings AdcViewerSettings, sensor ADCSensor, display SSD1306Display) {
+func RunSignalTracer(runEnvironment RunEnvironment) {
 	var mainWg sync.WaitGroup
 
 	mainWg.Add(1)
@@ -77,10 +83,10 @@ func RunSignalTracer(settings AdcViewerSettings, sensor ADCSensor, display SSD13
 	trace := signalTrace{curX: 0}
 
 	displayValueCallback := func(value uint16) {
-		writeTraceOnDisplay(display, &trace, value)
+		writeTraceOnDisplay(runEnvironment.Display, &trace, value)
 	}
 
-	go AdcLoop(sensor, settings.SamplingDelayMicros, displayValueCallback)
+	go AdcLoop(runEnvironment.Sensor, runEnvironment.Settings.SamplingDelayMicros, displayValueCallback)
 
 	go IAmAliveLoop()
 
